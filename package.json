@@ -1,0 +1,22 @@
+{
+  "name": "hw5-rework",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "lint": "eslint routes models server.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "cookie-session": "^2.0.0-beta.3",
+    "ejs": "^2.6.1",
+    "eslint": "^6.3.0",
+    "express": "^4.16.3",
+    "mockgoose": "^7.3.5",
+    "mongoose": "^5.3.2",
+    "nodemon": "^1.18.4"
+  }
+}

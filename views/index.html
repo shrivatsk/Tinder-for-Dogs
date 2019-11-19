@@ -1,0 +1,58 @@
+<html>
+  <head>
+    <title>cis197 Dog Tinder</title>
+    <script src="/static/scripts/lib/jquery.min.js"></script>
+    <script src="/static/scripts/main.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/styles/styles.css"/>
+  </head>
+  <body>
+    <div class="nav">
+      <h2>Dog Tinder</h2>
+      <% if (user) { %>
+      <p>Hi <%= user %> | 
+      <a href="/account/logout">Log out</a>
+      </p>
+      <% } %>
+    </div>
+    <div class="main-body">
+      <div class="left-col">
+      <% if (user) { %>
+      <a href="#" class="btn" id="new-question">Add new Play Date + </a>
+      <div class="modal" style="display:none">
+        <div class="question-area">
+          <textarea type="text" id="question-text">
+          Add Play Date: 
+          </textarea>
+          <a class="btn" type="submit" id="submit-question">Submit Event</a>
+          <a class="btn" id="close">Close</a>
+        </div>
+      </div>
+      <% } else { %>
+      <a class="btn" href="/account/login">Log in to add a play date</a>
+      <a class="btn" href="/account/signup">Sign up if you do not have an account</a>
+      <% } %>
+      <ul id="questions">
+        <% if (typeof questions == 'object') { %>
+          <% questions.forEach(function(q) { %>
+          <li data-qid=<%= q.id %>><%= q.questionText %></li>
+          <% }) 
+        } %>
+      </ul>
+      </div>
+      <div class="right-col">
+        <div id="show-question" style="display:none">
+            <div id="question-info">
+              <p id="question"></p>
+              Author: <p id="author"></p>
+              Comments: <p id="answer-text"></p>
+            </div>
+            <br/><br/>
+            <% if (user) { %>
+            <textarea id="answer"></textarea>
+            <a class="btn" type="submit" id="submitAnswer">Submit Answer</a>
+            <% } %>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
