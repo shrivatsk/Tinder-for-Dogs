@@ -1,0 +1,44 @@
+<html>
+<head>
+ <title>Login Page</title>
+ <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.6/css/bootstrap.min.css" integrity="sha384-rwoIResjU2yc3z8GV/NPeZWAv56rSmLldC3R/AZzGRnGxQQKnKkoFVhFQhNUwEyJ" crossorigin="anonymous">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <style type="text/css">
+ body {
+ padding-top: 40px;
+ padding-bottom: 40px;
+ background-color: white;
+ }
+ .login-box {
+ max-width: 330px;
+ margin: 0 auto;
+ }
+ .login-box .form-control {
+ margin-bottom: 10px;
+ }
+ .test-span{
+ display:block;
+ text-align:center;
+ color:red;
+}
+ </style>
+</head>
+<%if (error != null) { %>
+	<span class="test-span"><%= error%></span>
+     <% } %>
+<body>
+
+ <div class="login-box">
+ <h4>Login</h4>
+ <form method="post" action="http://localhost:3000/checkLogin">
+ <input type="text" name="username" size="20" class="form-control" placeholder="Username">
+ <input type="password" name="password" size="20" class="form-control" placeholder="Password">
+ <input type="submit" name="xyz" value="Login" class="btn btn-lg btn-primary btn-block">
+ </form>
+ <a href="/signup" class="btn btn-lg btn-info btn-block" role="button">Sign Up</a>
+ </div>
+
+</body>
+</html>
+
+
