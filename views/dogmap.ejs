@@ -23,13 +23,15 @@
 				color:red;
 				}
 				</style>
-				<script type="text/javascript" src="http://maps.google.com/maps/api/js?key="></script>
+				<script type="text/javascript" src="http://maps.google.com/maps/api/js?key=abc"></script>
 				<script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
 				<script type="text/javascript">
 	var map;
 	var user;
 	var markers = [];
+	var somemarkers = [];
 	var timearray = [];
+	var infoWindow;
 
       /* First, we define a function that creates a new Google Map and installs
          it in the 'map' DIV (see the HTML part at the bottom). */
@@ -41,14 +43,44 @@
           zoom: 11,
           mapTypeId: google.maps.MapTypeId.ROADMAP
         };
-        map = new google.maps.Map(document.getElementById("map"), myOptions);
+		map = new google.maps.Map(document.getElementById("map"), myOptions);
+		infoWindow = new google.maps.InfoWindow;
+
+		// Try HTML5 geolocation.
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(function(position) {
+            var pos = {
+              lat: position.coords.latitude,
+              lng: position.coords.longitude
+			};
+			
+            map.setCenter(pos);
+          }, function() {
+            handleLocationError(true, infoWindow, map.getCenter());
+          });
+        } else {
+          // Browser doesn't support Geolocation
+          handleLocationError(false, infoWindow, map.getCenter());
+		}
+		
+
         google.maps.event.addListener(map, "click", function (event) {
     		var latitude = event.latLng.lat();
    	 		var longitude = event.latLng.lng();
    	 		$("#latitude").val(latitude);
    	 		$("#longitude").val(longitude);
 		});
-      };
+
+
+      }
+
+      function handleLocationError(browserHasGeolocation, infoWindow, pos) {
+        infoWindow.setPosition(pos);
+        infoWindow.setContent(browserHasGeolocation ?
+                              'Error: Your location could not be found - map centering around Philadelphia.' :
+                              'Error: Your browser doesn\'t support geolocation.');
+        infoWindow.open(map);
+      }
 
       /* We then assign this function to the 'onload' property of the main window,
          so that it will be called as soon as the browser has finished loading the page. */
@@ -86,10 +118,10 @@
 					content: contentString
 	    		});
 
-	    		google.maps.event.addListener(marker, 'click', function() {
+	    		google.maps.event.addListener(marker, 'mouseover', function() {
 					this['infowindow'].open(map, this);
 	    		});
-	    		google.maps.event.addListener(marker, 'rightclick', function() {
+	    		google.maps.event.addListener(marker, 'click', function() {
 	    			if (this.content == dat.user) {
 	    				this.setMap(null);
 	    				$.ajax({
@@ -159,21 +191,29 @@
 					endtime = endtime + 12;
 				}
 				for (var t = 0; t < mytimes.length; t = t + 2) {
-					console.log(mytimes[i]);
-					console.log(mytimes[i + 1]);
-					console.log((mytimes[t] >= starttime && mytimes[t+1] <= endtime))
-					if ((mytimes[t] >= starttime && mytimes[t+1] <= endtime)){
+					console.log(mytimes[t + 1]);
+					console.log(starttime);
+					var startcheck = (mytimes[t + 1] >= starttime)
+					console.log(startcheck)
+					console.log(mytimes[t]);
+					console.log(endtime);
+					var endcheck = mytimes[t] <= endtime
+					console.log(endcheck)
+
+					console.log(startcheck && endcheck)
+					if (startcheck && endcheck) {
+						console.log(arr[i].dog)
 						var myLatlng = new google.maps.LatLng(arr[i].latitude, arr[i].longitude);
-        		var marker = new google.maps.Marker({
-                	position: myLatlng,
-                	title: arr[i].dog,
-                	content: arr[i].creator,
-                	icon: {
-                  		url: (arr[i].creator == dat.user) ? "https://i.imgur.com/yEbAamU.png"
-                  				: "https://i.imgur.com/VVptJGO.png"
-                  	}
-          		});
-          		markers.push(marker);
+						var marker = new google.maps.Marker({
+							position: myLatlng,
+							title: arr[i].dog,
+							content: arr[i].creator,
+							icon: {
+								url: (arr[i].creator == dat.user) ? "https://i.imgur.com/yEbAamU.png"
+										: "https://i.imgur.com/VVptJGO.png"
+							}
+						});
+          		somemarkers.push(marker);
 				  marker.setMap(map);
 				  var photourl;
 						  if (arr[i].photo === ''){
@@ -189,10 +229,10 @@
 					content: contentString
 	    		});
 
-	    		google.maps.event.addListener(marker, 'click', function() {
+	    		google.maps.event.addListener(marker, 'mouseover', function() {
 					this['infowindow'].open(map, this);
 	    		});
-	    		google.maps.event.addListener(marker, 'rightclick', function() {
+	    		google.maps.event.addListener(marker, 'click', function() {
 	    			if (this.content == dat.user) {
 	    				this.setMap(null);
 	    				$.ajax({
@@ -281,10 +321,10 @@
 							content: contentString
 	    				});
 
-	    				google.maps.event.addListener(newmarker, 'click', function() {
+	    				google.maps.event.addListener(newmarker, 'mouseover', function() {
 							this['infowindow'].open(map, this);
 	    				});
-	    				google.maps.event.addListener(newmarker, 'rightclick', function() {
+	    				google.maps.event.addListener(newmarker, 'click', function() {
 			    				this.setMap(null);
 			    				$.ajax({
 		        					method: 'POST',
