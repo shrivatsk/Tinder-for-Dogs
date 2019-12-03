@@ -63,8 +63,10 @@ var postDog = function (req, res) {
 	var latitude = req.body.latitude;
 	var longitude = req.body.longitude;
 	var photo = req.body.photo;
+	var start = req.body.start;
+	var end = req.body.end;
 	//add dog to table in DynamoDB
-	db.adddog(dog, description, creator, latitude, longitude, photo, function (data, err) {
+	db.adddog(dog, description, creator, latitude, longitude, photo, start, end, function (data, err) {
 		if (err || !data) {
 			res.send(err);
 		} else {

@@ -29,6 +29,7 @@
 	var map;
 	var user;
 	var markers = [];
+	var timearray = [];
 
       /* First, we define a function that creates a new Google Map and installs
          it in the 'map' DIV (see the HTML part at the bottom). */
@@ -54,7 +55,7 @@
 
       window.onload = loadMap;
       
-  	function loadGeoData() {
+  	function loadAllGeoData() {
 		$.get('/getGeoData', function(data) {
 			var dat = JSON.parse(data);
 	  		var arr = JSON.parse(dat.dogs);
@@ -65,8 +66,8 @@
                 	title: arr[i].dog,
                 	content: arr[i].creator,
                 	icon: {
-                  		url: (arr[i].creator == dat.user) ? "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png"
-                  				: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
+                  		url: (arr[i].creator == dat.user) ? "https://i.imgur.com/yEbAamU.png"
+                  				: "https://i.imgur.com/VVptJGO.png"
                   	}
           		});
           		markers.push(marker);
@@ -79,7 +80,7 @@
 						  }
 				var contentString = "<b>" + arr[i].dog + "</b><br>" +
 				"<a href=" + photourl + '>' + "<img width='150' height='150' src=" + photourl + ">" + "</a>"
-				 + "<br> Contact: " + arr[i].description + "<br><i>Added by: " + arr[i].creator + "</i>";
+				 + "<br> Contact: " + arr[i].description + "<br><i>Owner: " + arr[i].creator + "</i>";
 
 	    		marker['infowindow'] = new google.maps.InfoWindow({
 					content: contentString
@@ -107,7 +108,118 @@
           	}
 		}, 'text');
 	}
-    loadGeoData();
+	function loadSomeGeoData() {
+		$.get('/getGeoData', function(data) {
+			var dat = JSON.parse(data);
+			var arr = JSON.parse(dat.dogs);
+			var mytimes = [];
+			for (var i = 0; i < arr.length; i++) {
+				if ((arr[i].creator == dat.user)) {
+					var startplus = arr[i].start;
+					var starttime = parseInt(startplus.split('+')[0], 10);
+					var startzone = startplus.split('+')[1];
+					if (starttime === 12 && startzone === 'AM'){
+						starttime = 0;
+					}
+					if (startzone === 'PM'){
+						starttime = starttime + 12;
+					}
+					var endplus = arr[i].end;
+					var endtime = parseInt(endplus.split('+')[0], 10);
+					var endzone = endplus.split('+')[1];
+					if (endtime === 12 && endzone === 'AM'){
+						endtime = 0;
+					}
+					if (endzone === 'PM'){
+						endtime = endtime + 12;
+					}
+					mytimes.push(starttime);
+					mytimes.push(endtime);
+				}
+			}
+			timearray = mytimes;
+			for (var i = 0; i < arr.length; i++) {
+				var startplus = arr[i].start;
+				var starttime = parseInt(startplus.split('+')[0], 10);
+				var startzone = startplus.split('+')[1];
+				if (starttime === 12 && startzone === 'AM'){
+					starttime = 0;
+				}
+				if (startzone === 'PM'){
+					starttime = starttime + 12;
+				}
+				
+				var endplus = arr[i].end;
+				var endtime = parseInt(endplus.split('+')[0], 10);
+				var endzone = endplus.split('+')[1];
+				if (endtime === 12 && endzone === 'AM'){
+					endtime = 0;
+				}
+				if (endzone === 'PM'){
+					endtime = endtime + 12;
+				}
+				for (var t = 0; t < mytimes.length; t = t + 2) {
+					console.log(mytimes[i]);
+					console.log(mytimes[i + 1]);
+					console.log((mytimes[t] >= starttime && mytimes[t+1] <= endtime))
+					if ((mytimes[t] >= starttime && mytimes[t+1] <= endtime)){
+						var myLatlng = new google.maps.LatLng(arr[i].latitude, arr[i].longitude);
+        		var marker = new google.maps.Marker({
+                	position: myLatlng,
+                	title: arr[i].dog,
+                	content: arr[i].creator,
+                	icon: {
+                  		url: (arr[i].creator == dat.user) ? "https://i.imgur.com/yEbAamU.png"
+                  				: "https://i.imgur.com/VVptJGO.png"
+                  	}
+          		});
+          		markers.push(marker);
+				  marker.setMap(map);
+				  var photourl;
+						  if (arr[i].photo === ''){
+							  photourl = "https://www.iconsdb.com/icons/preview/gray/dog-32-xxl.png";
+						  } else {
+							  photourl = arr[i].photo
+						  }
+				var contentString = "<b>" + arr[i].dog + "</b><br>" +
+				"<a href=" + photourl + '>' + "<img width='150' height='150' src=" + photourl + ">" + "</a>"
+				 + "<br> Contact: " + arr[i].description + "<br><i>Owner: " + arr[i].creator + "</i>";
+
+	    		marker['infowindow'] = new google.maps.InfoWindow({
+					content: contentString
+	    		});
+
+	    		google.maps.event.addListener(marker, 'click', function() {
+					this['infowindow'].open(map, this);
+	    		});
+	    		google.maps.event.addListener(marker, 'rightclick', function() {
+	    			if (this.content == dat.user) {
+	    				this.setMap(null);
+	    				$.ajax({
+        					method: 'POST',
+        					url: '/removeGeoData',
+        					data: {
+        						'dog': this.title,
+        						'latitude': this.position.lat(),
+        						'longitude': this.position.lng(),
+        					}
+      					});
+	    			} else{
+	    				alert("This is not your dog!");
+	    			}
+	    		});
+					}
+				}
+			}	
+		}, 'text');
+	}
+	function loadAvailable() {
+			for(var i = 0; i < markers.length; i++) {
+        		markers[i].setMap(null);
+			  }
+			loadSomeGeoData();
+	}
+    loadAllGeoData();
     $(document).ready(function() {
   		$("form").on("submit", function (e) {
 			e.preventDefault();
@@ -117,7 +229,9 @@
     		var desc = $('#description').serialize().split('=')[1].replace(/\+/g, ' ');
 			var user = $('#creator').text().split(' ')[1];
 			var photo = decodeURIComponent($('#photo').serialize().split('=')[1]);
-			console.log(photo);
+			var start = $('#start').serialize().split('=')[1];
+			var end = $('#end').serialize().split('=')[1];
+			console.log($('#start').serialize());
   			$.ajax({
         		method: 'POST',
         		url: '/adddog',
@@ -128,6 +242,8 @@
         			'description': desc,
 					'creator': user,
 					'photo' : photo,
+					'start' : start,
+					'end' : end,
 					  
         		},
         		success: function(data) {
@@ -146,7 +262,7 @@
                   			title: dog,
                   			content: user,
                   			icon: {
-                  				url: "http://maps.google.com/mapfiles/ms/icons/yellow-dot.png"
+                  				url: "https://i.imgur.com/yEbAamU.png"
                   			}
           				});
           				markers.push(newmarker);
@@ -185,6 +301,8 @@
     					$('#longitude').val('');
 						$('#description').val('');
 						$('#photo').val('');
+						$('#start').val('');
+						$('#end').val('');
     				}
         		}
       		});
@@ -200,8 +318,8 @@
 				<a class="navbar-brand" href="#">Dogs in your Area</a>
 				<div class="collapse navbar-collapse" id="navbarNavAltMarkup">
 				  <div class="navbar-nav">
-					<button id="display" type="button" onclick="loadGeoData()" class="btn btn-primary">Show all Dogs</button>
-					<!-- <button id="hide" type="button" class="btn btn-primary" onclick = "loadMap()">Hide markers</button> -->
+					<button id="display" type="button" onclick="loadAllGeoData()" class="btn btn-primary">All Dogs</button>
+					<button id="display" type="button" onclick="loadAvailable()" class="btn btn-primary">Only Available Dogs</button>
 					<a class="nav-item nav-link" href="/logout">Log Out</a>
 				  </div>
 				</div>
@@ -220,10 +338,31 @@
 				<div class="col-sm-6">
 					<div class="form-group">
 						<label for="start">Available Start Time</label>
-						<select id = "start" class="form-control">
-							<option>1</option>
-							<option>2</option>
-							<option>3</option>
+						<select type="text" name = "start" id = "start" class="form-control">
+							<option>12 AM</option>
+							<option>1 AM</option>
+							<option>2 AM</option>
+							<option>3 AM</option>
+							<option>4 AM</option>
+							<option>5 AM</option>
+							<option>6 AM</option>
+							<option>7 AM</option>
+							<option>8 AM</option>
+							<option>9 AM</option>
+							<option>10 AM</option>
+							<option>11 AM</option>
+							<option>12 PM</option>
+							<option>1 PM</option>
+							<option>2 PM</option>
+							<option>3 PM</option>
+							<option>4 PM</option>
+							<option>5 PM</option>
+							<option>6 PM</option>
+							<option>7 PM</option>
+							<option>8 PM</option>
+							<option>9 PM</option>
+							<option>10 PM</option>
+							<option>11 PM</option>
 						</select>
 					</div>
 				</div>
@@ -231,10 +370,31 @@
 
 					<div class="form-group">
 							<label for="end">Available End Time</label>
-						<select id = "end" class="form-control">
-							<option>1</option>
-							<option>2</option>
-							<option>3</option>
+						<select type="text" name = "end" id = "end" class="form-control">
+								<option>12 AM</option>
+								<option>1 AM</option>
+								<option>2 AM</option>
+								<option>3 AM</option>
+								<option>4 AM</option>
+								<option>5 AM</option>
+								<option>6 AM</option>
+								<option>7 AM</option>
+								<option>8 AM</option>
+								<option>9 AM</option>
+								<option>10 AM</option>
+								<option>11 AM</option>
+								<option>12 PM</option>
+								<option>1 PM</option>
+								<option>2 PM</option>
+								<option>3 PM</option>
+								<option>4 PM</option>
+								<option>5 PM</option>
+								<option>6 PM</option>
+								<option>7 PM</option>
+								<option>8 PM</option>
+								<option>9 PM</option>
+								<option>10 PM</option>
+								<option>11 PM</option>
 						</select>
 					</div>
 				</div>

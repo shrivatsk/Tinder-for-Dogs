@@ -75,7 +75,8 @@ var myDB_createTable = function(route_callbck) {
 				kvsdog.get(item.key, function (err, info) {
 					var dog = JSON.parse(info[0].value);
 					dogs.push({"dog": item.key, "latitude": dog.latitude, 
-						"longitude": dog.longitude, "description": dog.description, "creator": dog.creator, "photo": dog.photo});
+						"longitude": dog.longitude, "description": dog.description, "creator": dog.creator,
+						 "photo": dog.photo, "start": dog.start, "end": dog.end});
 					callback();
 				});
 			}, function() {
@@ -85,7 +86,7 @@ var myDB_createTable = function(route_callbck) {
 	});
 };
 
-var myDB_addDog = function(dog, description, creator, latitude, longitude, photo, route_callbck) {
+var myDB_addDog = function(dog, description, creator, latitude, longitude, photo, start, end, route_callbck) {
 	//handle errors
 	if (!dog) {
 		route_callbck(null, "No dog name entered");
@@ -100,7 +101,7 @@ var myDB_addDog = function(dog, description, creator, latitude, longitude, photo
 	} else {
 		//add dog from user input to dogs table
 		kvsdog.put(dog, JSON.stringify({latitude: latitude, longitude: longitude, 
-			description: description, creator: creator, photo: photo}), function (err, data) {
+			description: description, creator: creator, photo: photo, start: start, end: end}), function (err, data) {
 			if (err) {
 				route_callbck(null, err);
 			} else {
