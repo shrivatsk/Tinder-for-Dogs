@@ -2,7 +2,7 @@ Shrivats Kannan CIS 197 final project
 
 A JavaScript web application that allows users to interact with fellow pet owners in their area to set up play dates. 
 
-Technologies used: React, Maps API, DynamoDB
+Technologies used: Maps API, DynamoDB
 
 npm install to install dependencies
 node app.js to run
